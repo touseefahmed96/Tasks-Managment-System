@@ -1,52 +1,95 @@
 # Task Management System
 
 ## Overview
-This project implements a simple task management system using Python. It includes the following components:
+This project implements a simple **Task Management System** using Python with **SQLite for data storage** and a **Streamlit UI (Upcoming Feature)**. It allows users to:
 
-- **Graph**: Represents a graph structure.
-- **Queue**: Implements a queue data structure using `collections.deque`.
-- **Stack**: Implements a stack data structure.
-- **Task**: Represents a task with an `id`, `title`, and `description`.
-- **User**: Represents a user with `name`, `id`, and `email`.
-- **Task_Service**: Manages task creation, task completion, and maintains a task history.
-- **User_Service**: Manages user data storage and retrieval.
+- **Manage Tasks**: Create, assign, and complete tasks.
+- **Manage Users**: Add users and retrieve user details.
+- **Track Task History**: Keep a record of completed tasks.
+- **Persistent Storage**: Uses SQLite to store tasks and users permanently.
+- **Upcoming**: A web-based UI using **Streamlit**.
+
+---
 
 ## Project Structure
 ```
 TaskManagementSystem/
 │── Models/
-│   │── Queue.py
-│   │── Stack.py
-│   │── Task.py
-│   │── User.py
+│   │── Queue.py          # Implements a queue
+│   │── Stack.py          # Implements a stack
+│   │── Task.py           # Task data model
+│   │── User.py           # User data model
 │
 │── Services/
-│   │── task_service.py
-│   │── user_service.py
+│   │── task_service.py   # Manages task-related operations
+│   │── user_service.py   # Manages user-related operations
 │
-│── main.py
-│── README.md
+│── database/
+│   │── database.py       # SQLite database setup and connection
+│   │── database.db       # SQLite database file
+│
+│── main.py               # Entry point of the system
+│── README.md             # Project documentation
 ```
 
+---
+
 ## Installation
-Ensure you have Python installed on your system (Python 3.x recommended). Clone the repository or copy the source files into a working directory.
+Ensure you have **Python 3.x** installed. Clone the repository or download the source files into a working directory.
+
+### Install Required Dependencies
+```bash
+pip install sqlite3 streamlit
+```
+
+### Initialize the Database
+The system uses **SQLite** for persistent storage. Run the following command to initialize the database:
+```bash
+python database/database.py
+```
+
+---
 
 ## Usage
-To run the task management system, execute the following command:
-
+### Run the Task Management System (CLI)
+To start the system using the command line interface (CLI):
 ```bash
 python main.py
 ```
 
 ### Features
-1. **User Management**:
-   - Add users with `User_Service.add_user(name, id, email)`.
-   - Retrieve user details with `User_Service.get_users(id)`.
+#### 1. **User Management**
+- **Add a User**:
+  ```python
+  User_Service.add_user(id, name, email)
+  ```
+- **Retrieve User Details**:
+  ```python
+  user = User_Service.get_users(id)
+  ```
 
-2. **Task Management**:
-   - Create tasks using `Task_Service.create_task(id, title, description)`.
-   - Complete tasks using `Task_Service.complete_task()`.
-   - Retrieve task history using `Task_Service.get_task_history()`.
+#### 2. **Task Management**
+- **Create a Task**:
+  ```python
+  Task_Service.create_task(id, title, description)
+  ```
+- **Assign a Task to a User**:
+  ```python
+  Task_Service.assign_task(task_id, user_id)
+  ```
+- **Complete a Task**:
+  ```python
+  Task_Service.complete_task()
+  ```
+- **View Completed Task History**:
+  ```python
+  Task_Service.get_task_history()
+  ```
 
-
-
+#### 3. **Database Operations** (For Advanced Users)
+You can view stored tasks and users directly in the **SQLite database**:
+```bash
+sqlite3 database/database.db
+sqlite> SELECT * FROM tasks;
+sqlite> SELECT * FROM users;
+```
