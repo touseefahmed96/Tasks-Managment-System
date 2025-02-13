@@ -37,7 +37,9 @@ def initialize_db():
             id INTEGER PRIMARY KEY,
             title TEXT NOT NULL,
             description TEXT NOT NULL,
-            completed BOOLEAN DEFAULT 0
+            completed BOOLEAN DEFAULT 0,
+            assigned_user_id INTEGER,
+            FOREIGN KEY (assigned_user_id) REFERENCES users(id) ON DELETE SET NULL
         )
     """)
 
