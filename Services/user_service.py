@@ -8,6 +8,15 @@ class User_Service:
     def __init__(self):
         self.users = self.get_all_users()
 
+    def get_next_user_id(self):
+        """Fetch the highest user ID and return the next available ID."""
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute("SELECT MAX(id) FROM users")
+        max_id = cursor.fetchone()[0]  # Get the highest user ID
+        conn.close()
+        return (max_id + 1) if max_id else 1000  # Start from 1000 if no users exist
+
     def add_user(self, id, name, email):
         conn = get_db_connection()
         cursor = conn.cursor()

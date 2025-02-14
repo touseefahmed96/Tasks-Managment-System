@@ -57,14 +57,24 @@ with tab1:
 with tab2:
     st.header("👤 User Management")
 
+    # Fetch the next available User ID
+    next_user_id = user_service.get_next_user_id()
+
     # Add a user
-    user_id = st.number_input("User ID", min_value=1000, step=1)
+    user_id = st.number_input(
+        "User ID",
+        min_value=1000,
+        step=1,
+        value=next_user_id,
+        disabled=True,
+    )
     user_name = st.text_input("User Name")
     user_email = st.text_input("User Email")
 
     if st.button("Add User"):
         user_service.add_user(user_id, user_name, user_email)
         st.success(f"User '{user_name}' added!")
+        st.rerun()
 
     # Retrieve user details
     fetch_user_id = st.number_input("Get User by ID", min_value=1000, step=1)
