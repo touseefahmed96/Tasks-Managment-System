@@ -55,7 +55,9 @@ with tab1:
     if st.button("Complete Task"):
         completed_task = task_service.complete_task()
         if completed_task:
-            st.success(f"Task '{completed_task[1]}' completed!")
+            st.success(
+                f"Task '{completed_task.title}' (ID: {completed_task.id}) completed!"
+            )
         else:
             st.warning("No pending tasks.")
 
