@@ -1,3 +1,4 @@
+import pandas as pd
 import streamlit as st
 
 from Services.task_service import Task_Service
@@ -10,7 +11,7 @@ user_service = User_Service()
 st.title("📝 Task Management System")
 
 # Tabs for navigation
-tab1, tab2 = st.tabs(["Tasks", "Users"])
+tab1, tab2, tab3 = st.tabs(["Tasks", "Users", "Task History"])
 
 # --- TASK MANAGEMENT ---
 with tab1:
@@ -58,17 +59,6 @@ with tab1:
         else:
             st.warning("No pending tasks.")
 
-    # Display Task History
-    st.subheader("✅ Completed Tasks")
-    task_history = task_service.get_task_history()
-    if task_history:
-        for task in task_history:
-            st.write(
-                f"**{task.title}** - Assigned to: {task.assigned_user_id or 'Unassigned'}"
-            )
-    else:
-        st.write("No completed tasks yet.")
-
 # --- USER MANAGEMENT ---
 with tab2:
     st.header("👤 User Management")
@@ -91,3 +81,29 @@ with tab2:
             st.write(f"**Email:** {user.email}")
         else:
             st.warning("User not found!")
+
+# --- TASK HISTORY TAB ---
+with tab3:
+    st.header("📜 Task History")
+
+    # Fetch completed tasks
+    task_history = task_service.get_task_history()
+
+    # Convert task history to a DataFrame for display
+    if task_history:
+        df = pd.DataFrame(
+            [
+                {
+                    "Task ID": task.id,
+                    "Title": task.title,
+                    "Description": task.description,
+                    "Assigned User ID": task.assigned_user_id
+                    if task.assigned_user_id
+                    else "Unassigned",
+                }
+                for task in task_history
+            ]
+        )
+        st.dataframe(df)
+    else:
+        st.write("No completed tasks yet.")
