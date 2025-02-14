@@ -5,6 +5,9 @@ from Models.User import User
 
 
 class User_Service:
+    def __init__(self):
+        self.users = self.get_all_users()  # Store users in a dictionary
+
     def add_user(self, id, name, email):
         conn = get_db_connection()
         cursor = conn.cursor()
@@ -14,7 +17,8 @@ class User_Service:
                 (id, name, email),
             )
             conn.commit()
-            return User(name, id, email)
+            self.users[id] = User(name, id, email)
+            return self.users[id]
         except sqlite3.IntegrityError:
             print("User with this ID already exists!")
         finally:
@@ -31,3 +35,15 @@ class User_Service:
             if user_data
             else None
         )
+
+    def get_all_users(self):
+        """Fetch all users from the database and store them in a dictionary."""
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute("SELECT * FROM users")
+        users = {
+            row["id"]: User(row["name"], row["id"], row["email"])
+            for row in cursor.fetchall()
+        }
+        conn.close()
+        return users
