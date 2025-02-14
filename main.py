@@ -11,13 +11,8 @@ user_service = User_Service()
 st.title("📝 Task Management System")
 
 # Tabs for navigation
-tab1, tab2, tab3, tab4 = st.tabs(
-    [
-        "Tasks",
-        "Users",
-        "Task History",
-        "Complete & Delete Tasks",
-    ]
+tab1, tab2, tab3, tab4, tab5 = st.tabs(
+    ["Tasks", "Users", "Task History", "Complete Tasks", "Delete Tasks"]
 )
 
 # --- TASK MANAGEMENT ---
@@ -42,7 +37,6 @@ with tab1:
         ["None"] + [user.name for user in user_service.get_all_users().values()],
     )
 
-    # Create a task
     if st.button("Create Task"):
         try:
             assigned_user_id = next(
@@ -108,12 +102,9 @@ with tab3:
     else:
         st.write("No completed tasks yet.")
 
-# --- COMPLETE & DELETE TASKS TAB ---
+# --- TASK COMPLETION TAB ---
 with tab4:
-    st.header("✅ Complete or 🗑 Delete a Task")
-
-    # --- Complete a Task ---
-    st.subheader("✅ Complete a Task")
+    st.header("✅ Complete a Task")
 
     pending_tasks = task_service.get_pending_tasks()
 
@@ -137,11 +128,12 @@ with tab4:
     else:
         st.write("No pending tasks to complete.")
 
-    # --- Delete a Task ---
-    st.subheader("🗑 Delete a Task")
+# --- TASK DELETION TAB ---
+with tab5:
+    st.header("🗑 Delete a Task")
 
     all_tasks = (
-        task_service.get_task_history() + pending_tasks
+        task_service.get_task_history() + task_service.get_pending_tasks()
     )  # Show all tasks for deletion
 
     if all_tasks:
