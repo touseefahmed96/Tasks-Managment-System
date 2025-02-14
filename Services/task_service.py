@@ -12,6 +12,18 @@ class Task_Service:
     ):
         conn = get_db_connection()
         cursor = conn.cursor()
+
+        # Check if task ID already exists
+        cursor.execute("SELECT id FROM tasks WHERE id = ?", (id,))
+        existing_task = cursor.fetchone()
+
+        if existing_task:
+            conn.close()
+            raise ValueError(
+                f"Task with ID {id} already exists! Please use a different ID."
+            )
+
+        # Insert new task if ID is unique
         cursor.execute(
             "INSERT INTO tasks (id, title, description, completed, assigned_user_id) VALUES (?, ?, ?, ?, ?)",
             (id, title, description, 0, assigned_user_id),
@@ -76,3 +88,12 @@ class Task_Service:
         ]
         conn.close()
         return tasks
+
+    def get_next_task_id(self):
+        """Fetch the highest task ID and return the next available ID."""
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute("SELECT MAX(id) FROM tasks")
+        max_id = cursor.fetchone()[0]  # Get the highest task ID
+        conn.close()
+        return (max_id + 1) if max_id else 1  # Start from 1 if no tasks exist
