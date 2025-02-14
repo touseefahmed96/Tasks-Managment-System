@@ -35,6 +35,7 @@ with tab1:
         ["None"] + [user.name for user in user_service.get_all_users().values()],
     )
 
+    # Create a task
     if st.button("Create Task"):
         try:
             assigned_user_id = next(
@@ -50,6 +51,24 @@ with tab1:
             st.rerun()
         except ValueError as e:
             st.error(str(e))
+
+    # Fetch all tasks for deletion
+    st.subheader("🗑 Delete a Task")
+    all_tasks = task_service.get_task_history()
+
+    if all_tasks:
+        task_to_delete = st.selectbox(
+            "Select Task to Delete",
+            [f"{task.id} - {task.title}" for task in all_tasks],
+        )
+
+        if st.button("Delete Task"):
+            task_id_to_delete = int(task_to_delete.split(" - ")[0])  # Extract Task ID
+            task_service.delete_task(task_id_to_delete)
+            st.warning(f"Task '{task_to_delete}' has been deleted.")
+            st.rerun()
+    else:
+        st.write("No tasks available for deletion.")
 
     # Complete a task
     if st.button("Complete Task"):

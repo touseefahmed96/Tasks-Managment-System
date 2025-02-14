@@ -32,7 +32,11 @@ class Task_Service:
         conn.close()
         return Task(id, title, description, assigned_user_id=assigned_user_id)
 
-    def assign_task(self, task_id, user_id):
+    def assign_task(
+        self,
+        task_id,
+        user_id,
+    ):
         conn = get_db_connection()
         cursor = conn.cursor()
 
@@ -94,6 +98,17 @@ class Task_Service:
         conn = get_db_connection()
         cursor = conn.cursor()
         cursor.execute("SELECT MAX(id) FROM tasks")
-        max_id = cursor.fetchone()[0]  # Get the highest task ID
+        max_id = cursor.fetchone()[0]
         conn.close()
-        return (max_id + 1) if max_id else 1  # Start from 1 if no tasks exist
+        return (max_id + 1) if max_id else 1
+
+    def delete_task(self, task_id):
+        """Delete a task from the database by its ID."""
+        conn = get_db_connection()
+        cursor = conn.cursor()
+
+        cursor.execute("DELETE FROM tasks WHERE id = ?", (task_id,))
+        conn.commit()
+        conn.close()
+
+        print(f"Task {task_id} deleted successfully.")
