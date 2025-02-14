@@ -55,26 +55,43 @@ class Task_Service:
         conn.close()
         print(f"Task {task_id} assigned to User {user_id}.")
 
-    def complete_task(self):
+    def complete_task(self, task_id):
+        """Complete a specific task by its ID."""
         conn = get_db_connection()
         cursor = conn.cursor()
-        cursor.execute(
-            "SELECT * FROM tasks WHERE completed = 0 ORDER BY id ASC LIMIT 1"
-        )
+
+        # Check if the task exists and is not already completed
+        cursor.execute("SELECT * FROM tasks WHERE id = ? AND completed = 0", (task_id,))
         task_data = cursor.fetchone()
+
         if task_data:
-            task = Task(
+            cursor.execute("UPDATE tasks SET completed = 1 WHERE id = ?", (task_id,))
+            conn.commit()
+            conn.close()
+            return Task(
                 task_data["id"],
                 task_data["title"],
                 task_data["description"],
-                assigned_user_id=task_data["assigned_user_id"],
             )
-            cursor.execute("UPDATE tasks SET completed = 1 WHERE id = ?", (task.id,))
-            conn.commit()
         else:
-            task = None
+            conn.close()
+            return None
+
+    def get_pending_tasks(self):
+        """Fetch all pending (not completed) tasks."""
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute("SELECT * FROM tasks WHERE completed = 0")
+        tasks = [
+            Task(
+                row["id"],
+                row["title"],
+                row["description"],
+            )
+            for row in cursor.fetchall()
+        ]
         conn.close()
-        return task
+        return tasks
 
     def get_task_history(self):
         conn = get_db_connection()

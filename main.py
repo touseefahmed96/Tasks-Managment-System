@@ -11,7 +11,9 @@ user_service = User_Service()
 st.title("📝 Task Management System")
 
 # Tabs for navigation
-tab1, tab2, tab3 = st.tabs(["Tasks", "Users", "Task History"])
+tab1, tab2, tab3, tab4, tab5 = st.tabs(
+    ["Tasks", "Users", "Task History", "Complete Tasks", "Delete Tasks"]
+)
 
 # --- TASK MANAGEMENT ---
 with tab1:
@@ -35,7 +37,6 @@ with tab1:
         ["None"] + [user.name for user in user_service.get_all_users().values()],
     )
 
-    # Create a task
     if st.button("Create Task"):
         try:
             assigned_user_id = next(
@@ -52,46 +53,28 @@ with tab1:
         except ValueError as e:
             st.error(str(e))
 
-    # Fetch all tasks for deletion
-    st.subheader("🗑 Delete a Task")
-    all_tasks = task_service.get_task_history()
-
-    if all_tasks:
-        task_to_delete = st.selectbox(
-            "Select Task to Delete",
-            [f"{task.id} - {task.title}" for task in all_tasks],
-        )
-
-        if st.button("Delete Task"):
-            task_id_to_delete = int(task_to_delete.split(" - ")[0])  # Extract Task ID
-            task_service.delete_task(task_id_to_delete)
-            st.warning(f"Task '{task_to_delete}' has been deleted.")
-            st.rerun()
-    else:
-        st.write("No tasks available for deletion.")
-
-    # Complete a task
-    if st.button("Complete Task"):
-        completed_task = task_service.complete_task()
-        if completed_task:
-            st.success(
-                f"Task '{completed_task.title}' (ID: {completed_task.id}) completed!"
-            )
-        else:
-            st.warning("No pending tasks.")
-
 # --- USER MANAGEMENT ---
 with tab2:
     st.header("👤 User Management")
 
+    # Fetch the next available User ID
+    next_user_id = user_service.get_next_user_id()
+
     # Add a user
-    user_id = st.number_input("User ID", min_value=1000, step=1)
+    user_id = st.number_input(
+        "User ID",
+        min_value=1000,
+        step=1,
+        value=next_user_id,
+        disabled=True,
+    )
     user_name = st.text_input("User Name")
     user_email = st.text_input("User Email")
 
     if st.button("Add User"):
         user_service.add_user(user_id, user_name, user_email)
         st.success(f"User '{user_name}' added!")
+        st.rerun()
 
     # Retrieve user details
     fetch_user_id = st.number_input("Get User by ID", min_value=1000, step=1)
@@ -128,3 +111,51 @@ with tab3:
         st.dataframe(df)
     else:
         st.write("No completed tasks yet.")
+
+# --- TASK COMPLETION TAB ---
+with tab4:
+    st.header("✅ Complete a Task")
+
+    pending_tasks = task_service.get_pending_tasks()
+
+    if pending_tasks:
+        selected_task = st.selectbox(
+            "Select Task to Complete",
+            [f"{task.id} - {task.title}" for task in pending_tasks],
+        )
+
+        if st.button("Complete Selected Task"):
+            task_id_to_complete = int(selected_task.split(" - ")[0])  # Extract Task ID
+            completed_task = task_service.complete_task(task_id_to_complete)
+
+            if completed_task:
+                st.success(
+                    f"Task '{completed_task.title}' (ID: {completed_task.id}) completed!"
+                )
+                st.rerun()
+            else:
+                st.warning("Task not found or already completed.")
+    else:
+        st.write("No pending tasks to complete.")
+
+# --- TASK DELETION TAB ---
+with tab5:
+    st.header("🗑 Delete a Task")
+
+    all_tasks = (
+        task_service.get_task_history() + task_service.get_pending_tasks()
+    )  # Show all tasks for deletion
+
+    if all_tasks:
+        task_to_delete = st.selectbox(
+            "Select Task to Delete",
+            [f"{task.id} - {task.title}" for task in all_tasks],
+        )
+
+        if st.button("Delete Selected Task"):
+            task_id_to_delete = int(task_to_delete.split(" - ")[0])  # Extract Task ID
+            task_service.delete_task(task_id_to_delete)
+            st.warning(f"Task '{task_to_delete}' has been deleted.")
+            st.rerun()
+    else:
+        st.write("No tasks available for deletion.")
