@@ -11,7 +11,14 @@ user_service = User_Service()
 st.title("📝 Task Management System")
 
 # Tabs for navigation
-tab1, tab2, tab3 = st.tabs(["Tasks", "Users", "Task History"])
+tab1, tab2, tab3, tab4 = st.tabs(
+    [
+        "Tasks",
+        "Users",
+        "Task History",
+        "Complete & Delete Tasks",
+    ]
+)
 
 # --- TASK MANAGEMENT ---
 with tab1:
@@ -51,34 +58,6 @@ with tab1:
             st.rerun()
         except ValueError as e:
             st.error(str(e))
-
-    # Fetch all tasks for deletion
-    st.subheader("🗑 Delete a Task")
-    all_tasks = task_service.get_task_history()
-
-    if all_tasks:
-        task_to_delete = st.selectbox(
-            "Select Task to Delete",
-            [f"{task.id} - {task.title}" for task in all_tasks],
-        )
-
-        if st.button("Delete Task"):
-            task_id_to_delete = int(task_to_delete.split(" - ")[0])  # Extract Task ID
-            task_service.delete_task(task_id_to_delete)
-            st.warning(f"Task '{task_to_delete}' has been deleted.")
-            st.rerun()
-    else:
-        st.write("No tasks available for deletion.")
-
-    # Complete a task
-    if st.button("Complete Task"):
-        completed_task = task_service.complete_task()
-        if completed_task:
-            st.success(
-                f"Task '{completed_task.title}' (ID: {completed_task.id}) completed!"
-            )
-        else:
-            st.warning("No pending tasks.")
 
 # --- USER MANAGEMENT ---
 with tab2:
@@ -128,3 +107,53 @@ with tab3:
         st.dataframe(df)
     else:
         st.write("No completed tasks yet.")
+
+# --- COMPLETE & DELETE TASKS TAB ---
+with tab4:
+    st.header("✅ Complete or 🗑 Delete a Task")
+
+    # --- Complete a Task ---
+    st.subheader("✅ Complete a Task")
+
+    pending_tasks = task_service.get_pending_tasks()
+
+    if pending_tasks:
+        selected_task = st.selectbox(
+            "Select Task to Complete",
+            [f"{task.id} - {task.title}" for task in pending_tasks],
+        )
+
+        if st.button("Complete Selected Task"):
+            task_id_to_complete = int(selected_task.split(" - ")[0])  # Extract Task ID
+            completed_task = task_service.complete_task(task_id_to_complete)
+
+            if completed_task:
+                st.success(
+                    f"Task '{completed_task.title}' (ID: {completed_task.id}) completed!"
+                )
+                st.rerun()
+            else:
+                st.warning("Task not found or already completed.")
+    else:
+        st.write("No pending tasks to complete.")
+
+    # --- Delete a Task ---
+    st.subheader("🗑 Delete a Task")
+
+    all_tasks = (
+        task_service.get_task_history() + pending_tasks
+    )  # Show all tasks for deletion
+
+    if all_tasks:
+        task_to_delete = st.selectbox(
+            "Select Task to Delete",
+            [f"{task.id} - {task.title}" for task in all_tasks],
+        )
+
+        if st.button("Delete Selected Task"):
+            task_id_to_delete = int(task_to_delete.split(" - ")[0])  # Extract Task ID
+            task_service.delete_task(task_id_to_delete)
+            st.warning(f"Task '{task_to_delete}' has been deleted.")
+            st.rerun()
+    else:
+        st.write("No tasks available for deletion.")
