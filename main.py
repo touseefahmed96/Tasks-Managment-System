@@ -99,7 +99,7 @@ with tab3:
                     "Task ID": task.id,
                     "Title": task.title,
                     "Description": task.description,
-                    "Assigned User ID": task.assigned_user_id
+                    "Assigned User ID": str(task.assigned_user_id)
                     if task.assigned_user_id
                     else "Unassigned",
                 }
