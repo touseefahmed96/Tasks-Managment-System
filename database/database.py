@@ -13,7 +13,7 @@ if not os.path.exists(DB_FOLDER):
 def get_db_connection():
     """Establish a connection to the SQLite database."""
     conn = sqlite3.connect(DB_NAME)
-    conn.row_factory = sqlite3.Row  # Allows accessing columns by name
+    conn.row_factory = sqlite3.Row
     return conn
 
 
@@ -47,5 +47,4 @@ def initialize_db():
     conn.close()
 
 
-# Initialize database on script execution
 initialize_db()

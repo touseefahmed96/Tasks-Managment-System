@@ -6,7 +6,7 @@ from Models.User import User
 
 class User_Service:
     def __init__(self):
-        self.users = self.get_all_users()  # Store users in a dictionary
+        self.users = self.get_all_users()
 
     def add_user(self, id, name, email):
         conn = get_db_connection()
