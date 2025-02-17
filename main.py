@@ -181,20 +181,38 @@ with tab4:
 with tab5:
     st.header("🗑 Delete a Task")
 
-    all_tasks = (
-        task_service.get_task_history() + task_service.get_pending_tasks()
-    )  # Show all tasks for deletion
+    all_tasks = task_service.get_task_history() + task_service.get_pending_tasks()
 
     if all_tasks:
         task_to_delete = st.selectbox(
             "Select Task to Delete",
             [f"{task.id} - {task.title}" for task in all_tasks],
+            key="task_to_delete",
         )
 
+        if "confirm_delete" not in st.session_state:
+            st.session_state.confirm_delete = False
+
         if st.button("Delete Selected Task"):
-            task_id_to_delete = int(task_to_delete.split(" - ")[0])  # Extract Task ID
-            task_service.delete_task(task_id_to_delete)
-            st.warning(f"Task '{task_to_delete}' has been deleted.")
-            st.rerun()
+            st.session_state.confirm_delete = True
+
+        if st.session_state.confirm_delete:
+            task_id_to_delete = int(task_to_delete.split(" - ")[0])
+
+            st.warning(f"⚠️ Are you sure you want to delete **{task_to_delete}**?")
+            col1, col2 = st.columns(2)
+
+            with col1:
+                if st.button("Confirm Deletion"):
+                    task_service.delete_task(task_id_to_delete)
+                    st.success(f"✅ Task '{task_to_delete}' has been deleted.")
+                    st.session_state.confirm_delete = False
+                    st.rerun()
+
+            with col2:
+                if st.button("Cancel"):
+                    st.session_state.confirm_delete = False
+                    st.warning("Deletion cancelled.")
+
     else:
         st.write("No tasks available for deletion.")
