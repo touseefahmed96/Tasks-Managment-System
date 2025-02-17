@@ -129,3 +129,39 @@ class Task_Service:
         conn.close()
 
         print(f"Task {task_id} deleted successfully.")
+
+    def get_tasks_by_user(self, user_id):
+        """Fetch tasks assigned to a specific user."""
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute("SELECT * FROM tasks WHERE assigned_user_id = ?", (user_id,))
+        tasks = [
+            Task(
+                row["id"],
+                row["title"],
+                row["description"],
+                row["completed"],
+                row["assigned_user_id"],
+            )
+            for row in cursor.fetchall()
+        ]
+        conn.close()
+        return tasks
+
+    def get_tasks_by_status(self, completed):
+        """Fetch tasks by status (completed or pending)."""
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute("SELECT * FROM tasks WHERE completed = ?", (completed,))
+        tasks = [
+            Task(
+                row["id"],
+                row["title"],
+                row["description"],
+                row["completed"],
+                row["assigned_user_id"],
+            )
+            for row in cursor.fetchall()
+        ]
+        conn.close()
+        return tasks
