@@ -53,6 +53,45 @@ with tab1:
         except ValueError as e:
             st.error(str(e))
 
+    # --- TASK FILTERING SECTION ---
+    st.subheader("🔍 Filter Tasks")
+
+    # Dropdown for filtering by user
+    user_list = {user.id: user.name for user in user_service.get_all_users().values()}
+    user_filter = st.selectbox("Filter by User", ["All"] + list(user_list.values()))
+
+    # Radio button for filtering by status
+    status_filter = st.radio("Filter by Status", ["All", "Pending", "Completed"])
+
+    # Get filtered tasks
+    if user_filter != "All":
+        user_id = next(uid for uid, name in user_list.items() if name == user_filter)
+        filtered_tasks = task_service.get_tasks_by_user(user_id)
+    else:
+        filtered_tasks = (
+            task_service.get_tasks_by_status(0 if status_filter == "Pending" else 1)
+            if status_filter != "All"
+            else task_service.get_pending_tasks() + task_service.get_task_history()
+        )
+
+    # Display filtered tasks in a DataFrame
+    if filtered_tasks:
+        df = pd.DataFrame(
+            [
+                {
+                    "Task ID": t.id,
+                    "Title": t.title,
+                    "Description": t.description,
+                    "Status": "Completed" if t.completed else "Pending",
+                    "Assigned User": user_list.get(t.assigned_user_id, "Unassigned"),
+                }
+                for t in filtered_tasks
+            ]
+        )
+        st.dataframe(df)
+    else:
+        st.write("No tasks match the selected filters.")
+
 # --- USER MANAGEMENT ---
 with tab2:
     st.header("👤 User Management")
