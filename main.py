@@ -36,6 +36,10 @@ with tab1:
         "Assign Task To",
         ["None"] + [user.name for user in user_service.get_all_users().values()],
     )
+    # Due Date Selection
+    due_date = st.date_input("Due Date")
+    # Priority Selection
+    priority = st.selectbox("Priority", ["High", "Medium", "Low"])
 
     if st.button("Create Task"):
         try:
@@ -47,8 +51,17 @@ with tab1:
                 ),
                 None,
             )
-            task_service.create_task(task_id, task_title, task_desc, assigned_user_id)
-            st.success(f"Task '{task_title}' created successfully!")
+            task_service.create_task(
+                task_id,
+                task_title,
+                task_desc,
+                str(due_date),
+                priority,
+                assigned_user_id,
+            )
+            st.success(
+                f"Task '{task_title}' created successfully with Priority: {priority} and Due Date: {due_date}"
+            )
             st.rerun()
         except ValueError as e:
             st.error(str(e))
@@ -71,7 +84,8 @@ with tab1:
         filtered_tasks = (
             task_service.get_tasks_by_status(0 if status_filter == "Pending" else 1)
             if status_filter != "All"
-            else task_service.get_pending_tasks() + task_service.get_task_history()
+            else task_service.get_pending_tasks()
+            + task_service.get_tasks_with_due_dates_and_priority()
         )
 
     # Display filtered tasks in a DataFrame
@@ -130,7 +144,7 @@ with tab3:
     st.header("📜 Task History")
 
     # Fetch completed tasks
-    task_history = task_service.get_task_history()
+    task_history = task_service.get_tasks_with_due_dates_and_priority()
 
     # Convert task history to a DataFrame for display
     if task_history:
@@ -140,7 +154,10 @@ with tab3:
                     "Task ID": task.id,
                     "Title": task.title,
                     "Description": task.description,
-                    "Assigned User ID": str(task.assigned_user_id)
+                    "Due Date": task.due_date,
+                    "Priority": task.priority,
+                    "Status": "Completed" if task.completed else "Pending",
+                    "Assigned User": str(task.assigned_user_id)
                     if task.assigned_user_id
                     else "Unassigned",
                 }
@@ -149,7 +166,7 @@ with tab3:
         )
         st.dataframe(df)
     else:
-        st.write("No completed tasks yet.")
+        st.write("No tasks found.")
 
 # --- TASK COMPLETION TAB ---
 with tab4:
@@ -181,7 +198,10 @@ with tab4:
 with tab5:
     st.header("🗑 Delete a Task")
 
-    all_tasks = task_service.get_task_history() + task_service.get_pending_tasks()
+    all_tasks = (
+        task_service.get_tasks_with_due_dates_and_priority()
+        + task_service.get_pending_tasks()
+    )
 
     if all_tasks:
         task_to_delete = st.selectbox(

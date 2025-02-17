@@ -39,6 +39,8 @@ def initialize_db():
             description TEXT NOT NULL,
             completed BOOLEAN DEFAULT 0,
             assigned_user_id INTEGER,
+            due_date TEXT,  -- New column for due date
+            priority TEXT CHECK(priority IN ('High', 'Medium', 'Low')),  -- New column for priority
             FOREIGN KEY (assigned_user_id) REFERENCES users(id) ON DELETE SET NULL
         )
     """)
@@ -47,4 +49,5 @@ def initialize_db():
     conn.close()
 
 
+# Initialize database
 initialize_db()

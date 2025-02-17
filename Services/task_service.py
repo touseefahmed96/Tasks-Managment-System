@@ -8,8 +8,11 @@ class Task_Service:
         id,
         title,
         description,
+        due_date,
+        priority,
         assigned_user_id=None,
     ):
+        """Create a new task with due date and priority."""
         conn = get_db_connection()
         cursor = conn.cursor()
 
@@ -23,20 +26,25 @@ class Task_Service:
                 f"Task with ID {id} already exists! Please use a different ID."
             )
 
-        # Insert new task if ID is unique
         cursor.execute(
-            "INSERT INTO tasks (id, title, description, completed, assigned_user_id) VALUES (?, ?, ?, ?, ?)",
-            (id, title, description, 0, assigned_user_id),
+            "INSERT INTO tasks (id, title, description, completed, assigned_user_id, due_date, priority) VALUES (?, ?, ?, ?, ?, ?, ?)",
+            (id, title, description, 0, assigned_user_id, due_date, priority),
         )
         conn.commit()
         conn.close()
-        return Task(id, title, description, assigned_user_id=assigned_user_id)
 
-    def assign_task(
-        self,
-        task_id,
-        user_id,
-    ):
+        return Task(
+            id,
+            title,
+            description,
+            False,
+            assigned_user_id,
+            due_date,
+            priority,
+        )
+
+    def assign_task(self, task_id, user_id):
+        """Assign a task to a specific user."""
         conn = get_db_connection()
         cursor = conn.cursor()
 
@@ -72,6 +80,10 @@ class Task_Service:
                 task_data["id"],
                 task_data["title"],
                 task_data["description"],
+                completed=True,
+                assigned_user_id=task_data["assigned_user_id"],
+                due_date=task_data["due_date"],
+                priority=task_data["priority"],
             )
         else:
             conn.close()
@@ -87,23 +99,30 @@ class Task_Service:
                 row["id"],
                 row["title"],
                 row["description"],
+                completed=row["completed"],
+                assigned_user_id=row["assigned_user_id"],
+                due_date=row["due_date"],
+                priority=row["priority"],
             )
             for row in cursor.fetchall()
         ]
         conn.close()
         return tasks
 
-    def get_task_history(self):
+    def get_tasks_with_due_dates_and_priority(self):
+        """Fetch all tasks including due date and priority."""
         conn = get_db_connection()
         cursor = conn.cursor()
-        cursor.execute("SELECT * FROM tasks WHERE completed = 1")
+        cursor.execute("SELECT * FROM tasks ORDER BY due_date ASC, priority DESC")
         tasks = [
             Task(
                 row["id"],
                 row["title"],
                 row["description"],
-                completed=True,
+                completed=row["completed"],
                 assigned_user_id=row["assigned_user_id"],
+                due_date=row["due_date"],
+                priority=row["priority"],
             )
             for row in cursor.fetchall()
         ]
@@ -123,11 +142,9 @@ class Task_Service:
         """Delete a task from the database by its ID."""
         conn = get_db_connection()
         cursor = conn.cursor()
-
         cursor.execute("DELETE FROM tasks WHERE id = ?", (task_id,))
         conn.commit()
         conn.close()
-
         print(f"Task {task_id} deleted successfully.")
 
     def get_tasks_by_user(self, user_id):
@@ -140,8 +157,10 @@ class Task_Service:
                 row["id"],
                 row["title"],
                 row["description"],
-                row["completed"],
-                row["assigned_user_id"],
+                completed=row["completed"],
+                assigned_user_id=row["assigned_user_id"],
+                due_date=row["due_date"],
+                priority=row["priority"],
             )
             for row in cursor.fetchall()
         ]
@@ -158,8 +177,10 @@ class Task_Service:
                 row["id"],
                 row["title"],
                 row["description"],
-                row["completed"],
-                row["assigned_user_id"],
+                completed=row["completed"],
+                assigned_user_id=row["assigned_user_id"],
+                due_date=row["due_date"],
+                priority=row["priority"],
             )
             for row in cursor.fetchall()
         ]
